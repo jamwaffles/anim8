@@ -1,2 +1,2 @@
 [workspace]
-members = [ "anim8" ]
+members = [ "anim8", "samples" ]
