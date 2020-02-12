@@ -15,15 +15,15 @@ impl LinearEasing {
     }
 }
 
-struct Driver {
-    start: i32,
-    end: i32,
+pub struct Driver {
+    start: f32,
+    end: f32,
     duration: Duration,
     easing: LinearEasing,
 }
 
 impl Driver {
-    pub fn new(start: i32, end: i32, duration: Duration) -> Self {
+    pub fn new(start: f32, end: f32, duration: Duration) -> Self {
         Self {
             start,
             end,
@@ -50,7 +50,7 @@ impl Driver {
     }
 }
 
-struct Looper {
+pub struct Looper {
     driver: Driver,
     iterations: Option<usize>,
 }
@@ -60,7 +60,7 @@ impl Looper {
         Self { driver, iterations }
     }
 
-    pub fn step(&self, position: Duration) -> Option<(f32, f32)> {
+    pub fn step(&self, position: Duration) -> f32 {
         let num_iterations = position.as_secs_f32() / self.driver.duration.as_secs_f32();
 
         // let whole_iters = num_iterations.trunc();
@@ -86,7 +86,7 @@ impl Looper {
         //     whole_iters
         // );
 
-        Some((whole_iters, dbg!(self.driver.norm(ass))))
+        self.driver.norm(ass)
     }
 }
 
@@ -98,7 +98,7 @@ mod tests {
     fn linear_step() {
         let steps = 20;
 
-        let driver = Driver::new(10, 20, Duration::from_millis(steps));
+        let driver = Driver::new(10.0, 20.0, Duration::from_millis(steps));
 
         for i in 0..=steps {
             println!("{} ms: {:?}", i, driver.step(Duration::from_millis(i)));
@@ -109,7 +109,7 @@ mod tests {
     fn looper() {
         let steps = 60;
 
-        let driver = Driver::new(10, 20, Duration::from_millis(20));
+        let driver = Driver::new(10.0, 20.0, Duration::from_millis(20));
 
         let looper = Looper::new(driver, Some(5));
 

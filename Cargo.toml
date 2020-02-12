@@ -1,2 +1,7 @@
 [workspace]
 members = [ "anim8", "samples" ]
+
+[patch.crates-io]
+embedded-graphics = { path = "../embedded-graphics/embedded-graphics" }
+embedded-graphics-simulator = { path = "../embedded-graphics/simulator" }
+anim8 = { path = "./anim8" }
