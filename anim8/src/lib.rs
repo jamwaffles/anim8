@@ -3,32 +3,90 @@
 
 use core::time::Duration;
 
-struct Driver<V> {
-    initial_value: V,
-    final_value: V,
-    duration: Duration,
+struct LinearEasing {}
+
+impl LinearEasing {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn map_norm(&self, norm: f32) -> f32 {
+        norm
+    }
 }
 
-impl Driver<i32> {
-    pub fn new(initial_value: i32, final_value: i32, duration: Duration) -> Self {
+struct Driver {
+    start: i32,
+    end: i32,
+    duration: Duration,
+    easing: LinearEasing,
+}
+
+impl Driver {
+    pub fn new(start: i32, end: i32, duration: Duration) -> Self {
         Self {
-            initial_value,
-            final_value,
+            start,
+            end,
             duration,
+            easing: LinearEasing::new(),
         }
     }
 
-    /// Get the animated value at a given time along the animation
-    pub fn step(&self, time: Duration) -> Option<f32> {
-        if time > self.duration || time < Duration::new(0, 0) {
-            None
+    pub fn step(&self, position: Duration) -> f32 {
+        let norm = position.as_secs_f32() / self.duration.as_secs_f32();
+
+        self.norm(norm)
+    }
+
+    fn norm(&self, norm: f32) -> f32 {
+        let eased = self.easing.map_norm(norm);
+
+        dbg!(self.start as f32);
+        dbg!(self.end as f32);
+        dbg!(eased);
+        dbg!(norm);
+
+        self.start as f32 + ((self.end as f32 - self.start as f32) * eased)
+    }
+}
+
+struct Looper {
+    driver: Driver,
+    iterations: Option<usize>,
+}
+
+impl Looper {
+    pub fn new(driver: Driver, iterations: Option<usize>) -> Self {
+        Self { driver, iterations }
+    }
+
+    pub fn step(&self, position: Duration) -> Option<(f32, f32)> {
+        let num_iterations = position.as_secs_f32() / self.driver.duration.as_secs_f32();
+
+        // let whole_iters = num_iterations.trunc();
+        let whole_iters = num_iterations;
+
+        // if let Some(iterations) = self.iterations {
+        //     if whole_iters > iterations as f32 {
+        //         return None;
+        //     }
+        // }
+
+        // let ass = num_iterations.fract();
+
+        let ass = if whole_iters > 1.0 {
+            whole_iters - whole_iters.trunc()
         } else {
-            let time_norm = time.div_f32(self.duration.as_secs_f32());
+            whole_iters
+        };
 
-            let delta = (self.final_value - self.initial_value) as f32;
+        // println!(
+        //     "Step {}, pos {}, whole_iters {}",
+        //     num_iterations,
+        //     whole_iters
+        // );
 
-            Some(self.initial_value as f32 + (delta * time_norm.as_secs_f32()))
-        }
+        Some((whole_iters, dbg!(self.driver.norm(ass))))
     }
 }
 
@@ -44,6 +102,20 @@ mod tests {
 
         for i in 0..=steps {
             println!("{} ms: {:?}", i, driver.step(Duration::from_millis(i)));
+        }
+    }
+
+    #[test]
+    fn looper() {
+        let steps = 60;
+
+        let driver = Driver::new(10, 20, Duration::from_millis(20));
+
+        let looper = Looper::new(driver, Some(5));
+
+        for i in 0..=steps {
+            println!("{} ms: {:?}\n", i, looper.step(Duration::from_millis(i)));
+            // looper.step(Duration::from_millis(i));
         }
     }
 }
