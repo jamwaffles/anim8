@@ -3,6 +3,10 @@
 
 use core::time::Duration;
 
+fn lerp(start_value: f32, end_value: f32, time_norm: f32) -> f32 {
+    (1.0 - time_norm) * start_value + end_value * time_norm
+}
+
 struct LinearEasing {}
 
 impl LinearEasing {
@@ -10,6 +14,7 @@ impl LinearEasing {
         Self {}
     }
 
+    /// Map 0.0 to 1.0 value to an eased 0.0 to 1.0 value
     pub fn map_norm(&self, norm: f32) -> f32 {
         norm
     }
@@ -38,15 +43,13 @@ impl Driver {
         self.norm(norm)
     }
 
+    /// Map a 0.0 to 1.0 value to the value between start and end values
     fn norm(&self, norm: f32) -> f32 {
         let eased = self.easing.map_norm(norm);
 
-        dbg!(self.start as f32);
-        dbg!(self.end as f32);
-        dbg!(eased);
-        dbg!(norm);
-
-        self.start as f32 + ((self.end as f32 - self.start as f32) * eased)
+        // self.start as f32 + ((self.end as f32 - self.start as f32) * eased)
+        // Linear interpolation, but the easing can make this non linear
+        lerp(self.start, self.end, eased)
     }
 }
 
