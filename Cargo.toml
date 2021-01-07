@@ -1,7 +1,14 @@
-[workspace]
-members = [ "anim8", "samples" ]
+[package]
+name = "anim8"
+version = "0.1.0"
+authors = ["James Waples <james@wapl.es>"]
+edition = "2018"
 
-[patch.crates-io]
-embedded-graphics = { path = "../embedded-graphics/embedded-graphics" }
-embedded-graphics-simulator = { path = "../embedded-graphics/simulator" }
-anim8 = { path = "./anim8" }
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+embedded-time = "0.10.1"
+
+[dev-dependencies]
+embedded-graphics = "0.7.0-alpha.2"
+embedded-graphics-simulator = "0.3.0-alpha.1"
