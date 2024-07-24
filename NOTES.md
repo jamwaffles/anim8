@@ -1,3 +1,83 @@
+## Case study: LED tree
+
+- First animation: just a basic twinkle.
+  - Random duration fade between...
+  - ... two random brigthnesses with a min and max
+- Fade to black (off) or full multiplier
+  - Needs some way of doing layers which are animated/have a duration themselves (in this case it'll
+    be a multiply)
+
+```rust
+// A "twinkle" effect for a single value
+let single_twinkle = Twinkle::<u8>::new(min_value, max_value, min_duration_ms, max_duration_ms);
+
+// 16 twinkling LEDs. Just a wrapper that loops through the array and calls `.tick()` on the effect.
+let twinkle = Multi::new([single_twinkle; 16]);
+
+// Not required for twinkle as we the programmer decided that `Twinkle` never ends (i.e.
+// `single_twinkle.tick()` will always return `Some(u8)`).
+// let animation = LoopForever::new(twinkle);
+
+// Wrap twinkle animation in a layer that allows us to add fade in/fade out e.g. in response to a
+// button press.
+let mut layer = Layer::new(animation);
+
+let fade_duration_ms = 500;
+
+// Default startup effect: fade in. Current time is 0 at start
+layer.set_effect(FadeIn::new(0, fade_duration_ms));
+
+// Fade in
+while let Some(fade_in) = layer.effect() {
+    // Will remove fade in effect if it's complete
+    let value = layer.tick(current_time);
+
+    // Send values to outputs; LEDs, cube, numbers, pixels, whatever
+}
+
+// Fade in is done, let's now just fade out
+layer.set_effect(FadeOut::new(current_time, fade_duration_ms));
+
+while let Some(fade_out) = layer.effect() {
+    // Will remove fade in effect if it's complete
+    let value = layer.tick(current_time);
+
+    // Send values to outputs; LEDs, cube, numbers, pixels, whatever
+}
+
+// We faded an effect in and out, hooray
+```
+
+How the layer might work:
+
+<https://play.rust-lang.org/?version=stable&mode=debug&edition=2021&gist=1612f1ed338d11bd490a6fdd504c89f5>
+
+```rust
+trait Anim {
+    type Output;
+
+    fn anim_stuff(&self, t: u32) -> Option<Self::Output>;
+}
+
+trait Eff {
+    type Output;
+
+    fn eff_stuff(&self, input: Self::Output, t: u32) -> Option<Self::Output>;
+}
+
+struct Layer<A, E> {
+    anim: A,
+    effect: E,
+}
+
+impl<A, E> Layer<A, E> where A: Anim, E: Eff<Output = A::Output> {
+    fn tick(&mut self, t: u32) -> Option<E::Output> {
+        self.anim.anim_stuff(t)
+            .and_then(|res| self.effect.eff_stuff(res, t))
+    }
+}
+```
+
 ## Case study: my LED cube
 
 Animation flow is something like this
